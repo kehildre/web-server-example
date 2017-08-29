@@ -348,6 +348,7 @@ namespace SimpleWeb {
                                    std::shared_ptr<typename ServerBase<socket_type>::Request>)>& resource_function) {
             //Set timeout on the following boost::asio::async-read or write function
             std::shared_ptr<boost::asio::deadline_timer> timer;
+            
             if(timeout_content>0)
                 timer=set_timeout_on_socket(socket, timeout_content);
 
@@ -355,7 +356,8 @@ namespace SimpleWeb {
                 auto response=std::shared_ptr<Response>(response_ptr);
                 send(response, [this, response, request, timer](const boost::system::error_code& ec) {
                     if(!ec) {
-                        if(timeout_content>0)
+                       try {
+                       if(timeout_content>0)
                             timer->cancel();
                         auto http_version=stof(request->http_version);
                         
@@ -366,7 +368,8 @@ namespace SimpleWeb {
                         }
                         if(http_version>1.05)
                             read_request_and_content(response->socket);
-                    }
+                        }
+                   catch (std::invalid_argument e) {}}
                 });
             });
 
